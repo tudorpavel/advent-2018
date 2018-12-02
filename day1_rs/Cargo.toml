@@ -1,0 +1,6 @@
+[package]
+name = "day1_rs"
+version = "0.1.0"
+authors = ["Tudor Pavel <tudorv.pavel@gmail.com>"]
+
+[dependencies]
