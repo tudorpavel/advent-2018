@@ -7,7 +7,7 @@ fn main() {
 
     let stdin = io::stdin();
     for line in stdin.lock().lines() {
-        let n: i32 = match line.unwrap().trim().parse() {
+        let n: i32 = match line.unwrap().parse() {
             Ok(num) => num,
             Err(_) => continue,
         };
