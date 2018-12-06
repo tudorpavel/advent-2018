@@ -23,7 +23,7 @@ fn main() {
     let mut points = lines.iter().map(|l| make_point(l)).collect();
 
     println!("Part 1: {}", solve_part1(&mut points));
-    // println!("Part 2: {}", solve_part2(&points));
+    println!("Part 2: {}", solve_part2(&mut points));
 }
 
 fn solve_part1(points: &mut Vec<Point>) -> i32 {
@@ -80,6 +80,32 @@ fn solve_part1(points: &mut Vec<Point>) -> i32 {
     max_area
 }
 
+fn solve_part2(points: &mut Vec<Point>) -> i32 {
+    let mut min_x = 1_000;
+    let mut min_y = 1_000;
+    let mut max_x = 0;
+    let mut max_y = 0;
+
+    for point in points.iter() {
+        if point.x < min_x { min_x = point.x }
+        if point.y < min_y { min_y = point.y }
+        if point.x > max_x { max_x = point.x }
+        if point.y > max_y { max_y = point.y }
+    }
+
+    let mut region_area = 0;
+
+    for y in min_y..=max_y {
+        for x in min_x..=max_x {
+            if is_valid_location(&points, x, y) {
+                region_area += 1;
+            }
+        }
+    }
+
+    region_area
+}
+
 fn make_point(string: &str) -> Point {
     let re = Regex::new(r"(\d+), (\d+)").unwrap();
     let mut point = Point { x: -1, y: -1, infinite: false, count: 0 };
@@ -108,4 +134,14 @@ fn is_point(point: &Option<&mut Point>) -> bool {
         Some(_) => true,
         None => false,
     }
+}
+
+fn is_valid_location(points: &Vec<Point>, x: i32, y: i32) -> bool {
+    let mut sum_distances = 0;
+
+    for point in points {
+        sum_distances += distance(&x, &y, &point.x, &point.y);
+    }
+
+    sum_distances < 10_000
 }
