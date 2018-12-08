@@ -68,11 +68,7 @@ fn make_node(nums: &[usize]) -> (Node, usize) {
 }
 
 fn breadth_first_print(node: &Node, depth: usize) {
-    print!("{}metadata: ", "\t".repeat(depth));
-    for d in node.metadata.iter() {
-        print!("{}, ", d);
-    }
-    println!();
+    println!("{}metadata: {:?}", "\t".repeat(depth), node.metadata);
 
     for child in node.children.iter() {
         breadth_first_print(child, depth + 1);
