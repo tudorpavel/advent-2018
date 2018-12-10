@@ -1,61 +1,52 @@
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.GradientPaint;
-import java.awt.Graphics2D;
-import java.awt.geom.Ellipse2D;
-import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.regex.*;
 import java.util.stream.*;
 import java.io.*;
 
-import javax.imageio.ImageIO;
-
 public class Main {
-    private static final int MAGIC_STEP_COUNT = 10;
+    private static final int MAGIC_DIVISOR = 4;
+    private static final int MAGIC_STEP_COUNT = 5;
 
     private static class Points {
-        private static final int MAGIC_NORMALIZE_PADDING = 10;
+        static int steps = 0;
 
         ArrayList<Point> points = new ArrayList<>();
-        int minX = Integer.MAX_VALUE;
-        int minY = Integer.MAX_VALUE;
-        int maxX = Integer.MIN_VALUE;
-        int maxY = Integer.MIN_VALUE;
+        int minX;
+        int minY;
+        int maxX;
+        int maxY;
 
         public void add(Point p) {
             points.add(p);
-
-            if (p.x < minX) { minX = p.x; }
-            if (p.y < minY) { minY = p.y; }
-            if (p.x > maxX) { maxX = p.x; }
-            if (p.y > maxY) { maxY = p.y; }
         }
 
-        public void normalizeCoordinates() {
-            int xIncrement = 0;
-            int yIncrement = 0;
-            int inc = 0;
-
-            if (minX < 0) { xIncrement = (- minX) + MAGIC_NORMALIZE_PADDING; }
-            if (minY < 0) { yIncrement = (- minY) + MAGIC_NORMALIZE_PADDING; }
-            if (xIncrement > yIncrement) {
-                inc = xIncrement;
-            } else {
-                inc = yIncrement;
-            }
-
-            minX += inc;
-            maxX += inc;
-            minY += inc;
-            maxY += inc;
+        public void recomputeBoundaries() {
+            int minX = Integer.MAX_VALUE;
+            int minY = Integer.MAX_VALUE;
+            int maxX = Integer.MIN_VALUE;
+            int maxY = Integer.MIN_VALUE;
 
             for (Point p: points) {
-                p.x += inc;
-                p.y += inc;
+                if (p.x < minX) { minX = p.x; }
+                if (p.y < minY) { minY = p.y; }
+                if (p.x > maxX) { maxX = p.x; }
+                if (p.y > maxY) { maxY = p.y; }
             }
+
+            this.minX = minX;
+            this.minY = minY;
+            this.maxX = maxX;
+            this.maxY = maxY;
+        }
+
+        public void moveStep() {
+            steps++;
+
+            for (Point p: points) {
+                p.moveStep();
+            }
+
+            recomputeBoundaries();
         }
 
         public String toString() {
@@ -104,37 +95,48 @@ public class Main {
             }
         }
 
-        points.normalizeCoordinates();
+        points.recomputeBoundaries();
 
-        // System.out.println(points.minX);
-        // System.out.println(points.maxX);
-        // System.out.println(points.minY);
-        // System.out.println(points.maxY);
-        // System.out.println(points);
+        if (points.maxX - points.minX > points.points.size()) {
+            while (points.maxX - points.minX > points.points.size() / MAGIC_DIVISOR
+                   || points.maxY - points.minY > points.points.size() / MAGIC_DIVISOR) {
+                points.moveStep();
+            }
+        }
 
-        try {
-            int width = points.maxX, height = points.maxY;
+        System.out.println("Initial steps: " + points.steps);
+        System.out.println("--- Add result file index to steps for Part 2 ---");
 
-            for (int i = 0; i < MAGIC_STEP_COUNT; i++) {
-                // TYPE_INT_ARGB specifies the image format: 8-bit RGBA packed
-                // into integer pixels
-                BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        for (int i = 0; i < MAGIC_STEP_COUNT; i++) {
+            String fileName = "out/" + i + ".txt";
+            new File(fileName);
+            FileWriter fileWriter = new FileWriter(fileName);
+            PrintWriter printWriter = new PrintWriter(fileWriter);
 
-                Graphics2D ig2 = bi.createGraphics();
+            for (int y = points.minY; y <= points.maxY; y++) {
+                for (int x = points.minX; x <= points.maxX; x++) {
+                    var found = false;
 
-                ig2.setPaint(Color.red);
+                    for (Point p: points.points) {
+                        if (p.x == x && p.y == y) {
+                            printWriter.print("X");
+                            found = true;
+                            break;
+                        }
+                    }
 
-                for (Point p: points.points) {
-                    ig2.drawLine(p.x, p.y, p.x, p.y);
-                    p.moveStep();
+                    if (!found) {
+                        printWriter.print(" ");
+                    }
                 }
-
-                ImageIO.write(bi, "PNG", new File("out/" + i + ".png"));
+                printWriter.print("\n");
             }
 
-            System.out.println("Images written in ./out folder.");
-        } catch (IOException ie) {
-            ie.printStackTrace();
+            points.moveStep();
+
+            printWriter.close();
         }
+
+        System.out.println("Files written in ./out folder.");
     }
 }
