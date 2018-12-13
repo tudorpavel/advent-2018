@@ -2,7 +2,7 @@ import java.util.*;
 import java.io.*;
 
 public class Main {
-    private static class Cart {
+    private static class Cart implements Comparable<Cart> {
         int x;
         int y;
         char direction; // one of ['^','>','v','<']
@@ -18,6 +18,11 @@ public class Main {
         public String toString() {
             return String.format("{ x: %d, y: %d, direction: %s }",
                                  x, y, direction);
+        }
+
+        public int compareTo(Cart c) {
+            int yCompare = new Integer(y).compareTo(new Integer(c.y));
+            return (yCompare != 0 ? yCompare : new Integer(x).compareTo(new Integer(c.x)));
         }
 
         public Cart nextGen(char[][] grid) {
@@ -170,35 +175,64 @@ public class Main {
     }
 
     private static Cart firstCrash(ArrayList<Cart> carts) {
-        int minY = Integer.MAX_VALUE;
-        int minX = Integer.MAX_VALUE;
-        Cart firstCrash = carts.get(0);
-
         for (int i = 0; i < carts.size() - 1; i++) {
             for (int j = i + 1; j < carts.size(); j++) {
                 Cart c1 = carts.get(i);
                 Cart c2 = carts.get(j);
 
                 if (c1.x == c2.x && c1.y == c2.y) {
-                    if (c1.y < minY) {
-                        minY = c1.y;
-                        minX = c1.x;
-                        firstCrash = c1;
-                    } else if (c1.y == minY && c1.x < minX) {
-                        minX = c1.x;
-                        firstCrash = c1;
-                    }
+                    return c1;
                 }
             }
         }
 
-        return firstCrash;
+        return carts.get(0);
+    }
+
+    private static ArrayList<Cart> removeImminentCollisions(char[][] grid, ArrayList<Cart> carts) {
+        ArrayList<Cart> newCarts = new ArrayList();
+        ArrayList<Integer> collisionIndexes = new ArrayList();
+
+        for (int i = 0; i < carts.size() - 1; i++) {
+            for (int j = i + 1; j < carts.size(); j++) {
+                Cart c1 = carts.get(i);
+                Cart c2 = carts.get(j);
+                Cart c1Next = carts.get(i).nextGen(grid); // look ahead
+                Cart c2Next = carts.get(j).nextGen(grid); // look ahead
+
+                if (c1Next.x == c2Next.x && c1Next.y == c2Next.y) {
+                    // && (c1.x == c2.x || c1.y == c2.y)) { // facing each other
+                    collisionIndexes.add(i);
+                    collisionIndexes.add(j);
+                }
+            }
+        }
+
+        for (int i = 0; i < carts.size(); i++) {
+            if (!collisionIndexes.contains(i)) {
+                newCarts.add(carts.get(i));
+            }
+        }
+
+        return newCarts;
     }
 
     private static ArrayList<Cart> simulateUntilCrash(char[][] grid, ArrayList<Cart> carts) {
         System.out.println(carts);
 
         while (noCollisions(carts)) {
+            carts = nextGen(grid, carts);
+            System.out.println(carts);
+        }
+
+        return carts;
+    }
+
+    private static ArrayList<Cart> simulateWithRemoval(char[][] grid, ArrayList<Cart> carts) {
+        System.out.println(carts);
+
+        while (carts.size() > 1) {
+            carts = removeImminentCollisions(grid, carts);
             carts = nextGen(grid, carts);
             System.out.println(carts);
         }
@@ -254,5 +288,8 @@ public class Main {
         ArrayList<Cart> cartsPart1 = simulateUntilCrash(grid, (ArrayList)carts.clone());
         Cart firstCrash = firstCrash(cartsPart1);
         System.out.println("Part 1: " + firstCrash.x + "," + firstCrash.y);
+
+        ArrayList<Cart> cartsPart2 = simulateWithRemoval(grid, (ArrayList)carts.clone());
+        System.out.println("Part 2: " + cartsPart2.get(0).x + "," + cartsPart2.get(0).y);
     }
 }
