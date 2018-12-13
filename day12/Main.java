@@ -42,6 +42,34 @@ public class Main {
         return next;
     }
 
+    private static int simulate(LinkedHashMap<Integer, Character> pots, int generationCount) {
+        // Okay so at some point the sum growth stabilizes and grows by 81 each generation
+        // Generation 200 has sum 14775
+        // So generation 201 has sum 14775 + 81 = 14856
+        // and so on...
+        //
+        // So maybe Part 2 result for 50000000000 generations is 14775 + (81 * (50000000000 - 200)) = 4049999998575
+        int sum = 0;
+
+        for (int i = 0; i < generationCount; i++) {
+            pots = nextGen(pots);
+
+            int prevSum = sum;
+            sum = 0;
+            for (int n: pots.keySet()) {
+                sum += n;
+            }
+
+            System.out.println("[" + (i + 1) + "] min: " + minIndex +
+                               ", max: " + maxIndex + ", sum: " + sum
+                               + ", diff: " + (sum - prevSum));
+        }
+
+        System.out.println("Generation count: " + generationCount);
+
+        return sum;
+    }
+
     public static void main(String args[]) {
         Scanner in = new Scanner(new BufferedReader(new InputStreamReader(System.in)));
         Pattern pattern = Pattern.compile("initial state: ([#\\.]+)");
@@ -80,34 +108,7 @@ public class Main {
             }
         }
 
-        // System.out.println(pots);
-        for (int i = 0; i < 20; i++) {
-            pots = nextGen(pots);
-            // System.out.println(pots);
-        }
-
-        int sum = 0;
-        for (int n: pots.keySet()) {
-            sum += n;
-        }
-        System.out.println("Part 1: " + sum);
-
-        // Okay so Part 2 result for 5000 generations is 405195
-        // Okay so Part 2 result for 50000 generations is 4050195
-        // Okay so Part 2 result for 500000 generations is 40500195
-        // Okay so Part 2 result for 5000000 generations is 405000195
-        // ...
-        // So maybe Part 2 result for 50000000000 generations is 4050000000195?
-        final int GENERATION_COUNT = 5000000;
-        for (int i = 0; i < GENERATION_COUNT; i++) {
-            pots = nextGen(pots);
-        }
-
-        sum = 0;
-        for (int n: pots.keySet()) {
-            sum += n;
-        }
-        System.out.println("Generation count: " + GENERATION_COUNT);
-        System.out.println("Part 2: " + sum);
+        System.out.println("Part 1: " + simulate((LinkedHashMap) pots.clone(), 20));
+        System.out.println("Part 2: " + simulate((LinkedHashMap) pots.clone(), 201));
     }
 }
