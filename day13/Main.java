@@ -193,17 +193,28 @@ public class Main {
         ArrayList<Cart> newCarts = new ArrayList();
         ArrayList<Integer> collisionIndexes = new ArrayList();
 
+        Collections.sort(carts);
+
         for (int i = 0; i < carts.size() - 1; i++) {
             for (int j = i + 1; j < carts.size(); j++) {
+                if (collisionIndexes.contains(i) ||
+                    collisionIndexes.contains(j)) {
+                    continue;
+                }
+
                 Cart c1 = carts.get(i);
                 Cart c2 = carts.get(j);
                 Cart c1Next = carts.get(i).nextGen(grid); // look ahead
                 Cart c2Next = carts.get(j).nextGen(grid); // look ahead
 
-                if (c1Next.x == c2Next.x && c1Next.y == c2Next.y) {
-                    // && (c1.x == c2.x || c1.y == c2.y)) { // facing each other
+                if ((c1.x == c2Next.x && c1.y == c2Next.y)
+                    || (c1Next.x == c2.x && c1Next.y == c2.y)
+                    || (c1Next.x == c2Next.x && c1Next.y == c2Next.y)) {
+                    System.out.println("To remove (" + i + "): " + c1);
+                    System.out.println("To remove (" + j + "): " + c2);
                     collisionIndexes.add(i);
                     collisionIndexes.add(j);
+                    System.out.println(collisionIndexes);
                 }
             }
         }
@@ -218,23 +229,23 @@ public class Main {
     }
 
     private static ArrayList<Cart> simulateUntilCrash(char[][] grid, ArrayList<Cart> carts) {
-        System.out.println(carts);
+        // System.out.println(carts);
 
         while (noCollisions(carts)) {
             carts = nextGen(grid, carts);
-            System.out.println(carts);
+            // System.out.println(carts);
         }
 
         return carts;
     }
 
     private static ArrayList<Cart> simulateWithRemoval(char[][] grid, ArrayList<Cart> carts) {
-        System.out.println(carts);
+        // System.out.println(carts);
 
         while (carts.size() > 1) {
             carts = removeImminentCollisions(grid, carts);
             carts = nextGen(grid, carts);
-            System.out.println(carts);
+            // System.out.println(carts);
         }
 
         return carts;
@@ -284,6 +295,8 @@ public class Main {
                 grid[y][x] = inputMatrix.get(y).get(x);
             }
         }
+
+        System.out.println("Carts count: " + carts.size());
 
         ArrayList<Cart> cartsPart1 = simulateUntilCrash(grid, (ArrayList)carts.clone());
         Cart firstCrash = firstCrash(cartsPart1);
