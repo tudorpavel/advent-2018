@@ -159,6 +159,49 @@ public class Main {
         return newCarts;
     }
 
+    private static ArrayList<Cart> nextGenWithRemoval(char[][] grid, ArrayList<Cart> carts) {
+        ArrayList<Cart> newCarts = new ArrayList();
+        ArrayList<Integer> indexesMarkedForRemoval = new ArrayList();
+
+        Collections.sort(carts);
+
+        for (int i = 0; i < carts.size(); i++) {
+            Cart c1 = carts.get(i);
+            boolean collision = false;
+            for (int j = 0; j < newCarts.size(); j++) {
+                Cart c2 = newCarts.get(j);
+
+                if (c1.x == c2.x && c1.y == c2.y) {
+                    newCarts.remove(j);
+                    collision = true;
+                    break;
+                }
+            }
+
+            if (collision) {
+                continue;
+            }
+
+            c1 = c1.nextGen(grid);
+            collision = false;
+            for (int j = 0; j < newCarts.size(); j++) {
+                Cart c2 = newCarts.get(j);
+
+                if (c1.x == c2.x && c1.y == c2.y) {
+                    newCarts.remove(j);
+                    collision = true;
+                    break;
+                }
+            }
+
+            if (!collision) {
+                newCarts.add(c1);
+            }
+        }
+
+        return newCarts;
+    }
+
     private static boolean noCollisions(ArrayList<Cart> carts) {
         for (int i = 0; i < carts.size() - 1; i++) {
             for (int j = i + 1; j < carts.size(); j++) {
@@ -189,45 +232,6 @@ public class Main {
         return carts.get(0);
     }
 
-    private static ArrayList<Cart> removeImminentCollisions(char[][] grid, ArrayList<Cart> carts) {
-        ArrayList<Cart> newCarts = new ArrayList();
-        ArrayList<Integer> collisionIndexes = new ArrayList();
-
-        Collections.sort(carts);
-
-        for (int i = 0; i < carts.size() - 1; i++) {
-            for (int j = i + 1; j < carts.size(); j++) {
-                if (collisionIndexes.contains(i) ||
-                    collisionIndexes.contains(j)) {
-                    continue;
-                }
-
-                Cart c1 = carts.get(i);
-                Cart c2 = carts.get(j);
-                Cart c1Next = carts.get(i).nextGen(grid); // look ahead
-                Cart c2Next = carts.get(j).nextGen(grid); // look ahead
-
-                if ((c1.x == c2Next.x && c1.y == c2Next.y)
-                    || (c1Next.x == c2.x && c1Next.y == c2.y)
-                    || (c1Next.x == c2Next.x && c1Next.y == c2Next.y)) {
-                    System.out.println("To remove (" + i + "): " + c1);
-                    System.out.println("To remove (" + j + "): " + c2);
-                    collisionIndexes.add(i);
-                    collisionIndexes.add(j);
-                    System.out.println(collisionIndexes);
-                }
-            }
-        }
-
-        for (int i = 0; i < carts.size(); i++) {
-            if (!collisionIndexes.contains(i)) {
-                newCarts.add(carts.get(i));
-            }
-        }
-
-        return newCarts;
-    }
-
     private static ArrayList<Cart> simulateUntilCrash(char[][] grid, ArrayList<Cart> carts) {
         // System.out.println(carts);
 
@@ -243,8 +247,7 @@ public class Main {
         // System.out.println(carts);
 
         while (carts.size() > 1) {
-            carts = removeImminentCollisions(grid, carts);
-            carts = nextGen(grid, carts);
+            carts = nextGenWithRemoval(grid, carts);
             // System.out.println(carts);
         }
 
