@@ -59,6 +59,19 @@ public class Main {
                 n = n.next;
             }
         }
+
+        public boolean matchesDigits(ArrayList<Integer> digits) {
+            Node n = this;
+
+            for (Integer digit: digits) {
+                if (n.score != digit || n == lastNode) {
+                    return false;
+                }
+                n = n.next;
+            }
+
+            return true;
+        }
     }
 
     private static class Elf {
@@ -116,11 +129,47 @@ public class Main {
         }
     }
 
+    private static int nodesUntilSequence(String scoreSequence) {
+        ArrayList<Elf> elves = new ArrayList();
+        Node.makeFirstNode(3);
+        Node.insertLast(new Node(7));
+        elves.add(new Elf(Node.firstNode));
+        elves.add(new Elf(Node.lastNode));
+
+        ArrayList<Integer> digits = new ArrayList();
+
+        for (int i = 0; i < scoreSequence.length(); i++) {
+            digits.add(scoreSequence.charAt(i) - '0');
+        }
+
+        Node node = Node.firstNode;
+        int index = 0;
+
+        while (!node.matchesDigits(digits)) {
+            if (Node.nodeCount - index > digits.size()) {
+                node = node.next;
+                index++;
+            }
+
+            iterate(elves);
+            // Node.printFirst(Node.nodeCount);
+            // System.out.println();
+        }
+
+        return index;
+    }
+
     public static void main(String args[]) {
-        final int RECIPE_COUNT = Integer.parseInt(args[0]);
-        iterateUntil(RECIPE_COUNT);
-        System.out.print("After " + RECIPE_COUNT + ": ");
-        Node.printSolutionAfter(RECIPE_COUNT);
+        final String GIVEN_INPUT = args[0];
+
+        // Part 1
+        int inputNumber = Integer.parseInt(GIVEN_INPUT);
+        iterateUntil(inputNumber);
+        System.out.print("After " + inputNumber + ": ");
+        Node.printSolutionAfter(inputNumber);
         System.out.println();
+
+        // Part 2
+        System.out.println("Found " + GIVEN_INPUT + " after: " + nodesUntilSequence(GIVEN_INPUT));
     }
 }
