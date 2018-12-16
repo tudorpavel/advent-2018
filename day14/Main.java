@@ -2,12 +2,40 @@ import java.util.*;
 
 public class Main {
     private static class Node {
+        static int nodeCount = 0;
+        static Node firstNode;
+        static Node lastNode;
         int score;
         Node next;
 
-        public Node(int score, Node next) {
+        public Node(int score) {
             this.score = score;
-            this.next = next;
+            nodeCount++;
+        }
+
+        public static Node makeFirstNode(int score) {
+            nodeCount = 0;
+            Node n = new Node(score);
+            n.next = n;
+            firstNode = n;
+            lastNode = n;
+
+            return n;
+        }
+
+        public static void insertLast(Node newNode) {
+            newNode.next = lastNode.next;
+            lastNode.next = newNode;
+            lastNode = newNode;
+        }
+
+        public static void printFirst(int steps) {
+            firstNode.printNext(steps);
+        }
+
+        public static void printSolutionAfter(int recipeCount) {
+            Node n = firstNode.nodeAfter(recipeCount);
+            n.printNext(10);
         }
 
         public void insertAfter(Node newNode) {
@@ -16,20 +44,20 @@ public class Main {
         }
 
         public Node nodeAfter(int steps) {
-            if (steps == 0) {
-                return this;
+            Node n = this;
+            for (int i = 0; i < steps; i++) {
+                n = n.next;
             }
 
-            return next.nodeAfter(steps - 1);
+            return n;
         }
 
         public void printNext(int steps) {
-            System.out.println(score);
-            if (steps == 0) {
-                return;
+            Node n = this;
+            for (int i = 0; i < steps; i++) {
+                System.out.print(n.score);
+                n = n.next;
             }
-
-            next.printNext(steps - 1);
         }
     }
 
@@ -39,18 +67,60 @@ public class Main {
         public Elf(Node node) {
             currentNode = node;
         }
+
+        public void move() {
+            currentNode = currentNode.nodeAfter(currentNode.score + 1);
+        }
     }
 
-    private static void iterate(int recipeCount) {
+    private static void iterate(ArrayList<Elf> elves) {
+        int sum = 0;
+
+        for (Elf elf: elves) {
+            sum += elf.currentNode.score;
+        }
+
+        ArrayList<Integer> digits = new ArrayList();
+
+        if (sum == 0) {
+            digits.add(0);
+        } else {
+            while (sum > 0) {
+                digits.add(sum % 10);
+                sum /= 10;
+            }
+        }
+
+        Collections.reverse(digits);
+
+        for (Integer digit: digits) {
+            Node.insertLast(new Node(digit));
+        }
+
+        for (Elf elf: elves) {
+            elf.move();
+        }
+    }
+
+    private static void iterateUntil(int recipeCount) {
         ArrayList<Elf> elves = new ArrayList();
-        Node firstNode = new Node(3, null);
-        Node secondNode = new Node(7, firstNode);
-        firstNode.next = secondNode;
-        elves.add(new Elf(firstNode));
-        elves.add(new Elf(secondNode));
+        Node.makeFirstNode(3);
+        Node.insertLast(new Node(7));
+        elves.add(new Elf(Node.firstNode));
+        elves.add(new Elf(Node.lastNode));
+
+        while (Node.nodeCount < (recipeCount + 10)) {
+            iterate(elves);
+            // Node.printFirst(Node.nodeCount);
+            // System.out.println();
+        }
     }
 
     public static void main(String args[]) {
-        // System.out.println("Part 1: ")
+        final int RECIPE_COUNT = Integer.parseInt(args[0]);
+        iterateUntil(RECIPE_COUNT);
+        System.out.print("After " + RECIPE_COUNT + ": ");
+        Node.printSolutionAfter(RECIPE_COUNT);
+        System.out.println();
     }
 }
